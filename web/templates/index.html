@@ -32,6 +32,12 @@ body {
     font-weight: 600;
     color: #404040;
 }
+.user-follow {
+    position: absolute;
+    top: -15px;
+    right: -90px;
+    color:rgba(12, 167, 227, 0.6);
+}
 .user-cell {
     width: 360px;
     float: left;
@@ -78,6 +84,7 @@ body {
     <a class="link-style hover" href="https://www.zhihu.com/people/{{user.id}}/answers" target="_blank" >
         <span class="user-name">{{ user.name }}</span>
         <span class="user-desc">{{ user.description }}</span>
+        <span class="user-follow">{{ user.follower }}</span>
     </a>
 </div>
 {% endfor %}
