@@ -1,7 +1,7 @@
 # -*- encoding:utf-8 -*-
 import MySQLdb
 
-conn = MySQLdb.connect("127.0.0.1", "root", "root", "ZHTrend", use_unicode=True, charset="gbk",
+conn = MySQLdb.connect("127.0.0.1", "root", "Smm", "ZHTrend", use_unicode=True, charset="utf8",
                        connect_timeout=3600)
 
 
@@ -79,11 +79,11 @@ def WFUPloadWF(tags):
 
 
 def SITEGetTrend(date):
-    date = conn.escape_string(unicode(date).encode("gbk", errors="ignore"))
+    date = conn.escape_string(unicode(date).encode("utf8", errors="ignore"))
     sql = "select DISTINCT title,answer.questionid,rank from trend_%s,answer where trend_%s.questionid = answer.questionid  ORDER BY rank DESC limit 30;" % (
         date, date)
     try:
-        SITEconn = MySQLdb.connect("127.0.0.1", "root", "root", "ZHTrend", use_unicode=True, charset="gbk",
+        SITEconn = MySQLdb.connect("127.0.0.1", "root", "root", "ZHTrend", use_unicode=True, charset="utf8",
                        connect_timeout=3600)
         cursor = SITEconn.cursor()
         cursor.execute(sql)
@@ -98,7 +98,7 @@ def SITEGetTrend(date):
 
 def SpiderActivityGetID():
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM `user` WHERE follower > 800 AND  receivethank > 4000;")
+    cursor.execute("SELECT id FROM `user` WHERE follower > 500 AND  receivethank > 1000 order by id asc;")
     ret = cursor.fetchall()
     cursor.close()
     return ret
@@ -106,7 +106,10 @@ def SpiderActivityGetID():
 
 def SpiderActivityInsert(
         id, questionId, answerId, title, total, approve, content, posttime, edittime, comment):
-    content = conn.escape_string(unicode(content).encode("gbk", errors="ignore"))
+    if check_exist_answer(questionId, answerId):
+        print 'exist...', questionId, answerId, title
+        return
+    content = conn.escape_string(unicode(content).encode("utf8", errors="ignore"))
     cursor = conn.cursor()
     sql = '''INSERT INTO answer VALUES ("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s")''' % (
         id, questionId, answerId, title, total, approve, content, posttime, edittime, comment)
@@ -119,9 +122,9 @@ def SpiderActivityCreateDB():
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS answer;")
     cursor.execute('''CREATE TABLE `answer` (
-    `id`  VARCHAR(255) NOT NULL ,
-    `questionid`  VARCHAR(255) NOT NULL ,
-    `answerid`  VARCHAR(255) NOT NULL ,
+    `id`  VARCHAR(100) NOT NULL ,
+    `questionid`  VARCHAR(100) NOT NULL ,
+    `answerid`  VARCHAR(100) NOT NULL ,
     `title`  VARCHAR(255) NOT NULL ,
     `total`  INT NOT NULL ,
     `approve`  INT UNSIGNED ZEROFILL NOT NULL ,
@@ -132,7 +135,7 @@ def SpiderActivityCreateDB():
     PRIMARY KEY (`answerid`, `questionid`),
     CONSTRAINT `usertoanswer` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
     )
-    ;
+    ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
     ''')
     cursor.close()
 
@@ -141,8 +144,9 @@ def SpiderUserCreateDB():
     cursor = conn.cursor()
     cursor.execute("DROP TABLE IF EXISTS user;")
     cursor.execute('''CREATE TABLE `user` (
-            `id`  VARCHAR(255) NOT NULL UNIQUE ,
+            `id`  VARCHAR(100) NOT NULL UNIQUE ,
             `name`  VARCHAR(255) NULL ,
+            `avatar`  VARCHAR(255) NULL ,
             `description`  VARCHAR(2047) NULL ,
             `profession`  VARCHAR(255) NULL ,
             `sex`  VARCHAR(255) NULL ,
@@ -162,7 +166,7 @@ def SpiderUserCreateDB():
             `interestcollection`  INT UNSIGNED ZEROFILL NOT NULL ,
             PRIMARY KEY (`id`)
             )
-            ;''')
+            ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;''')
     cursor.close()
 
 
@@ -174,19 +178,58 @@ def SpiderUserGetIDs():
     return ret
 
 
-def SpiderUserInsert(id, name, description, profession, sex, answer, share, question, collection,
+
+
+def check_exist_answer(questionid, answerid):
+    cursor = conn.cursor()
+    cursor.execute("SELECT id from answer where questionid='%s' and answerid='%s' limit 1;"%(questionid, answerid))
+    ret = cursor.fetchall()
+    cursor.close()
+    return ret
+
+def check_exist_user(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT id from user where id='%s' limit 1;"%user_id)
+    ret = cursor.fetchall()
+    cursor.close()
+    return ret
+
+
+def SpiderUserInsert(id, name, avatar,  description, profession, sex, answer, share, question, collection,
                      receiveupprove,
                      receivethank, receivecollect, follower, following, spsonsorlive, interesttopic, interestcolumn,
                      interestquestion, interestcollection):
+    if check_exist_user(id):
+        print 'exist.....', id
+        return
     cursor = conn.cursor()
-    description = conn.escape_string(unicode(description).encode("gbk", errors="ignore"))
-    profession = conn.escape_string(unicode(profession).encode("gbk", errors="ignore"))
-    sql = "INSERT INTO user VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" \
-          % (id, name, description, profession, sex, answer, share, question, collection,
+    description = conn.escape_string(unicode(description).encode("utf8", errors="ignore"))
+    profession = conn.escape_string(unicode(profession).encode("utf8", errors="ignore"))
+
+    sql = "INSERT INTO user VALUES ('%s', '%s', '%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')" \
+          % (id, name,avatar, description, profession, sex, answer, share, question, collection,
              receiveupprove,
              receivethank, receivecollect, follower, following, spsonsorlive, interesttopic, interestcolumn,
              interestquestion, interestcollection)
-    sql = sql.encode("gbk", errors="ignore")
+    sql = sql.encode("utf8", errors="ignore")
     cursor.execute(sql)
     conn.commit()
     cursor.close()
+
+
+'''
+mysql> select count(*) from answer limit 1;
++----------+
+| count(*) |
++----------+
+|     4235 |
++----------+
+1 row in set (0.00 sec)
+
+mysql> select count(*) from user limit 1;
++----------+
+| count(*) |
++----------+
+|    25753 |
++---------
+'''

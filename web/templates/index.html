@@ -1,0 +1,84 @@
+
+<style>
+body {
+    background: #f7f8fa;
+    padding: 10px 50px 10px 50px;
+}
+.link-style {
+    height: 50px;
+    line-height: 50px;
+    float: left;
+    text-decoration: none;
+    color: #0750ab;
+    padding-left: 5px;
+    cursor: pointer;
+    width: 210px;
+
+}
+
+.user-desc {
+    line-height: 20px;
+    margin-top: 5px;
+    color: #555;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+.user-name {
+    line-height: 25px;
+    font-weight: 600;
+    color: #404040;
+}
+.user-cell {
+    width: 360px;
+    float: left;
+    padding: 2px 0 2px 2px;
+    background: white;
+    border-radius: 5px;
+    margin: 5px;
+}
+.hover {
+    position:relative;
+}
+.external {
+    display: none;
+}
+.tooltip { /* hide and position tooltip */
+  top:-10px;
+  background-color:#0750ab;
+  padding-left:10px;
+  color:white;
+  border-radius:5px;
+  opacity:0;
+  position:absolute;
+  min-width: 200px;
+  -webkit-transition: opacity 0.5s;
+  -moz-transition: opacity 0.5s;
+  -ms-transition: opacity 0.5s;
+  -o-transition: opacity 0.5s;
+  transition: opacity 0.5s;
+}
+
+
+
+.avatar-img {
+    width:50px;
+    float:left;
+    border-radius: 5px;
+}
+</style>
+
+{% for user in user_list %}
+
+<div class="user-cell">
+    <img class="avatar-img" src="{{ user.avatar }}"></img>
+    <a class="link-style hover" href="https://www.zhihu.com/people/{{user.id}}/answers" target="_blank" >
+        <span class="user-name">{{ user.name }}</span>
+        <span class="user-desc">{{ user.description }}</span>
+    </a>
+</div>
+{% endfor %}
+
